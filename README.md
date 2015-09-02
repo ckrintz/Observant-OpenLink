@@ -10,5 +10,5 @@ The program uses
 </li><li> <a href="http://flask.pocoo.org/">Python Flask</a>
 </li></ul>
 
-Run the program via <tt>python ObsServ.py</tt>. And direct your browser to <a href="http://localhost:9977/">the server</a>.  More details can be found in the code concerning work arounds and issues with the Observant API and this oauth2 library.  
+Run the program via <tt>python ObsServ.py</tt>. And direct your browser to <a href="http://localhost:9977/">the server (http://localhost:9977/)</a>.  The initial handshake takes a few seconds to perform all of the redirects, so be patient.  More details can be found in the code concerning work arounds and issues with the Observant API and this oauth2 library.  
 
