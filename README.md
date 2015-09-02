@@ -6,7 +6,7 @@ In order to use the program, you must contact Observant to get permission (and t
 
 The program uses 
 <ul><li>The <a href="https://github.com/ObservantPtyLtd/oada-client/blob/master/OAuth2-step-by-step.md">Observant Openlink OADA API</a>, 
-</li><li> The <a href="from https://developers.google.com/identity/protocols/OAuth2WebServer">Google APIs OAuth2 library</a>.  Install via: pip install --upgrade google-api-python-client
+</li><li> The <a href="https://developers.google.com/identity/protocols/OAuth2WebServer">Google APIs OAuth2 library</a>.  Install via: pip install --upgrade google-api-python-client
 </li><li> <a href="http://flask.pocoo.org/">Python Flask</a>
 </li></ul>
 
