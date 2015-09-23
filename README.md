@@ -10,5 +10,12 @@ The program uses
 </li><li> <a href="http://flask.pocoo.org/">Python Flask</a>
 </li></ul>
 
-Run the program via <tt>python ObsServ.py</tt>. And direct your browser to <a href="http://localhost:9977/">the server (http://localhost:9977/)</a>.  The initial handshake takes a few seconds to perform all of the redirects, so be patient.  More details can be found in the code concerning work arounds and issues with the Observant API and this oauth2 library.  
+Run the program via <tt>python ObsServ.py</tt>. And direct your browser to <a href="http://localhost:9977/">the server (http://localhost:9977/)</a>.  The initial handshake takes a few seconds to perform all of the redirects, so be patient.  More details can be found in the code concerning one work around required for Basic Auth credentials/access
+
+To register a client with Observant you email Jon Havey and send him your preferred
+<ul><li>client\_id, e.g. MyFarmClient</li>
+<li>and redirect urls (http, https, static IP and localhost, port, and route, e.g.  http://XXX.XXX.XXX.XXX:9977/myfarm/oada, https://XXX.XXX.XXX.XXX:9977/myfarm/oada,  http://localhost:9977/myfarm/oada, https://localhost:9977/myfarm/oada</li>
+<li></li>
+He will send you the client secret in return.  Once you receive this you can test against the IP-based redirects by setting up your server at that IP and running the program via <tt>python ObsServ.py prod</tt>.
+You should plug whichever redirect you are testing into redir=... in main in the production setting.
 
