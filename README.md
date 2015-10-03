@@ -18,4 +18,10 @@ To register a client with Observant you email Jon Havey and send him your prefer
 <li></li>
 He will send you the client secret in return.  Once you receive this you can test against the IP-based redirects by setting up your server at that IP and running the program via <tt>python ObsServ.py prod</tt>.
 You should plug whichever redirect you are testing into redir=... in main in the production setting.
+</li></ul>
 
+There is also a command line version you can use.  This version gives you a URL to place in your browser so that you can manually retrieve the authorization code.
+<ul><li>Generate and store the access tokens:<br />python ObsServ_CLI.py
+</li><li>Use stored access tokens to query the test service (Watermark sensor):<br />python ObsServ_CLI.py -r -n
+</li><li>Use stored access tokens (or generate them) to query the test service (Watermark sensor):<br />python ObsServ_CLI.py -r
+</li></ul>
