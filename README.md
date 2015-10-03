@@ -8,6 +8,8 @@ The program uses
 <ul><li>The <a href="https://github.com/ObservantPtyLtd/oada-client/blob/master/OAuth2-step-by-step.md">Observant Openlink OADA API</a>, 
 </li><li> The <a href="https://developers.google.com/identity/protocols/OAuth2WebServer">Google APIs OAuth2 library</a>.  Install via: pip install --upgrade google-api-python-client
 </li><li> <a href="http://flask.pocoo.org/">Python Flask</a>
+</li><li>Other setup required:
+<br>pip install --upgrade pip; pip install oauth2client httplib2 flask
 </li></ul>
 
 Run the program via <tt>python ObsServ.py</tt>. And direct your browser to <a href="http://localhost:9977/">the server (http://localhost:9977/)</a>.  The initial handshake takes a few seconds to perform all of the redirects, so be patient.  More details can be found in the code concerning one work around required for Basic Auth credentials/access
