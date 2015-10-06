@@ -17,9 +17,10 @@ api_url='https://test.obsrv.it/api/bookmarks' #works
 #api_url='https://test.obsrv.it/api/bookmark/sensors' #"status":404,"error":"Not Found"
 api_url='https://test.obsrv.it/api/bookmarks' #works
 api_url='https://test.obsrv.it/api/resources/davis/app-63bcecd2-719e-41b7-a198-9fbeee10f0c8/data' #works
-api_url='https://test.obsrv.it/api/resources/testfarms/sm_test_-_watermark/data' #works
+#watermark test system
+api_url='https://test.obsrv.it/api/resources/testfarms/app-0bc29b01-31cd-4820-908b-8c20b2e2989b/data'
 service='TestFarms' 
-sec='YYY' #contact jonathan.harvey@observant.net for this, place in creds.json (not in repo!)
+sec='YYY' #contact openlink@observant.net for this, place in creds.json (not in repo!)
 
 obs_scope='sensor-data'
 app_name = 'ObsServ'
@@ -29,7 +30,7 @@ storage = None
 redir = None
 
 #You will also need a login and password for the test account 
-#Contact jonathan.harvey@observant.net for these
+#Contact openlink@observant.net for these
 
 ################ initialize_storage ##################
 def initialize_storage():
@@ -142,6 +143,15 @@ def query():
 	output = r.text
         if r.status_code == 401:  #unauthorized - check if refresh is needed, else regenerate from code
             refresh_creds()
+            #do it again
+            creds = json.loads(CLI_session['credentials']) #json
+            header = {'Authorization': 'Bearer {0}'.format(creds['access_token'])}
+            r = None
+            try:
+                r = requests.get(api_url, headers=header)
+            except requests.exceptions.RequestException as e:  
+                print 'API Access post refresh failed: {0}'.format(e)
+                output = {'name':'api_access_post_refresh_failed'}
     else: 
         output = {'name':'api_access_failed'}
     if DEBUG:
@@ -232,7 +242,7 @@ def oauth2callback():
     return flask.redirect(flask.url_for('query'))
 
 def main():
-    global redir, token_url, service, sec
+    global redir, token_url, api_url, auth_url, service, sec
     logging.basicConfig()
     
     #read in the credentials (service and secret) from simple json file
@@ -256,15 +266,25 @@ def main():
     app.debug = False
 
     if len(sys.argv) > 1: #production/IP setting
-        print 'creating production server'
+        print 'using production environment'
         #alternative setup from a real server, once registered with Observant (including redirects)
-        redir='http://128.111.84.220:8088/smartfarm/oada/' #must match app.run
-        app.run(host='0.0.0.0',port=8088)
+	#register redirects (server IP, port, redir path/route (replace myfarm/oada here)) 
+        #with openlink@observant.net
+        SERVER='XXX.XXX.XXX.XXX'
+        PORT='YYYY'
+	REDIR_PATH='myfarm/oada'
+        auth_url= 'https://obsrv.it/uaa/oauth/authorize'
+        token_url = 'https://{serv}:{sec}@obsrv.it/uaa/oauth/token'.format(serv=service,sec=sec)
+        api_url='https://obsrv.it/api/bookmarks' #works
     else:  #test/localhost
         #this is the only supported redirect for the Observant test account
-        print 'creating test server'
-        redir='http://localhost:9977/testfarms/oada/'  #must match app.run
-        app.run(host='localhost',port=9977)
+        token_url = 'https://{serv}:{sec}@test.obsrv.it/uaa/oauth/token'.format(serv=service,sec=sec)
+        print 'using test environment'
+        SERVER='localhost'
+        PORT='9977'
+	REDIR_PATH='testfarms/oada'
+    redir='http://{0}:{1}/{2}/'.format(SERVER,PORT,REDIR_PATH) 
+    app.run(host=SERVER,port=PORT)
 
 if __name__ == '__main__':
     main()
