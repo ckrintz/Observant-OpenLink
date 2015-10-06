@@ -12,12 +12,10 @@ CLI_session = {}
 auth_url= 'https://test.obsrv.it/uaa/oauth/authorize'
 token_url = 'https://test.obsrv.it/uaa/oauth/token'
 api_url='https://test.obsrv.it/api/bookmarks' #works
-#api_url='https://test.obsrv.it/api/bookmark/sensors' #"status":404,"error":"Not Found"
-api_url='https://test.obsrv.it/api/bookmarks' #works
 api_url='https://test.obsrv.it/api/resources/davis/app-63bcecd2-719e-41b7-a198-9fbeee10f0c8/data' #works
 #watermark test system
 api_url='https://test.obsrv.it/api/resources/testfarms/sm_test_-_watermark/data' #works
-service='TestFarms' 
+service='XXX' 
 sec='YYY' #contact jonathan.harvey@observant.net for this, place in creds.json (not in repo!)
 
 obs_scope='sensor-data'
@@ -60,11 +58,14 @@ def initialize_storage():
   global storage
   fname = '{0}_{1}'.format(app_name,service)
   storage = Storage(fname)
+  if DEBUG:
+      print 'init_storage, storage fname: {0}'.format(fname)
   credentials = storage.get()
   if credentials is not None:
       CLI_session['credentials'] = client.OAuth2Credentials.to_json(credentials)
       if DEBUG:
-          print 'init_storage, got creds from storage: {0}'.format(credentials)
+          creds = json.loads(CLI_session['credentials'])
+          print 'init_storage, got creds from storage: {0}'.format(creds)
       return True
   if DEBUG:
       print 'init_storage, unable to get creds'
@@ -121,6 +122,8 @@ def refresh_creds():
         storage = Storage(fname)
     storage.put(credentials)
     CLI_session['credentials'] = client.OAuth2Credentials.to_json(credentials)
+    if DEBUG:
+        print 'Stored creds at={0}'.format(res['access_token'])
     return 
 
 
@@ -137,7 +140,8 @@ def query(noauth=True):
         #check first to see if we have valid credentials stored away from a previous run
         if not initialize_storage():
             if noauth:
-                return None
+                print 'Error -- No prior creds to use, run without -n option'
+                sys.exit(1)
             oauth2setup()
     creds = json.loads(CLI_session['credentials']) #json
     
@@ -154,6 +158,7 @@ def query(noauth=True):
 	#This is where we insert the code for storing the data that comes back from the request
         if r.status_code == 401:  #unauthorized - check if refresh is needed, else regenerate from code
             refresh_creds()
+            creds = json.loads(CLI_session['credentials']) #json
             header = {'Authorization': 'Bearer {0}'.format(creds['access_token'])}
             r = None
             try:
@@ -184,7 +189,6 @@ def oauth2setup():
 
     print 'Performing oauth2 web server flow'
     try:
-        #from https://developers.google.com/identity/protocols/OAuth2WebServer
         flow = client.OAuth2WebServerFlow(
             client_id=service,
             client_secret=sec,
@@ -246,7 +250,7 @@ def oauth2setup():
     return
 
 def main():
-    global redir, token_url, service, sec
+    global redir, token_url, api_url, auth_url, service, sec
     logging.basicConfig()
     parser = argparse.ArgumentParser(description='Get and store Observant oauth2 creds. This program appends to all obs_*.csv files, so delete these before running.')
     parser.add_argument('--runquery','-r',action='store_true', default=False, help='Run a query?')
@@ -258,10 +262,14 @@ def main():
     #python ObsServ_CLI.py -r -n    //gets cred from storage and perform query
     #python ObsServ_CLI.py -p    //use production SERVER:PORT, get creds and store them 
 
+    if args.prod: #production/IP setting
+	creds_file = 'creds-prod.json'
+    else:
+	creds_file = 'creds.json'
     #read in the credentials (service and secret) from simple json file
     try: 
-        with open('creds.json') as data_file:    
-            data = json.load(data_file)
+        with open(creds_file) as f:    
+            data = json.load(f)
             service = data['service']
             sec = data['secret']
     except:
@@ -272,24 +280,31 @@ def main():
     WORK AROUND (part of #1 above) for obtaining Observant tokens (access and refresh): 
     see for details: https://github.com/ObservantPtyLtd/oada-client/blob/master/OAuth2-step-by-step.md
     '''
-    token_url = 'https://{serv}:{sec}@test.obsrv.it/uaa/oauth/token'.format(serv=service,sec=sec)
 
     if args.prod: #production/IP setting
         print 'using production environment'
         #alternative setup from a real server, once registered with Observant (including redirects)
-        redir='http://128.111.84.220:8088/smartfarm/oada/' #must match SERVER/PORT
         SERVER='128.111.84.220'
         PORT='8088'
+        #SERVER='localhost' #not in redir list, but use 220
+        auth_url= 'https://obsrv.it/uaa/oauth/authorize'
+        token_url = 'https://{serv}:{sec}@obsrv.it/uaa/oauth/token'.format(serv=service,sec=sec)
+        api_url='https://obsrv.it/api/bookmarks' #works
     else:  #test/localhost
         #this is the only supported redirect for the Observant test account
+        token_url = 'https://{serv}:{sec}@test.obsrv.it/uaa/oauth/token'.format(serv=service,sec=sec)
         print 'using test environment'
-        redir='http://localhost:9977/testfarms/oada/'  #must match SERVER/PORT
         SERVER='localhost'
         PORT='9977'
+    redir='http://{0}:{1}/smartfarm/oada/'.format(SERVER,PORT)  #must match SERVER/PORT
 
     if args.runquery:
         res = query(args.noauth)
-        process_data('obs',res)
+        print api_url
+        if 'bookmarks' in api_url:
+            print res
+        else:
+            process_data('obs',res)
     elif not args.noauth:
         oauth2setup()
     else:
