@@ -102,8 +102,8 @@ def refresh_creds():
     storage.put(credentials)
     flask.session['credentials'] = client.OAuth2Credentials.to_json(credentials)
 
-    #redirect to /query 
-    return flask.redirect(flask.url_for('query'))
+    #return to /query
+    return
 
 
 ################ query route ##################
@@ -144,7 +144,7 @@ def query():
         if r.status_code == 401:  #unauthorized - check if refresh is needed, else regenerate from code
             refresh_creds()
             #do it again
-            creds = json.loads(CLI_session['credentials']) #json
+            creds = json.loads(flask.session['credentials']) #json
             header = {'Authorization': 'Bearer {0}'.format(creds['access_token'])}
             r = None
             try:
@@ -152,10 +152,15 @@ def query():
             except requests.exceptions.RequestException as e:  
                 print 'API Access post refresh failed: {0}'.format(e)
                 output = {'name':'api_access_post_refresh_failed'}
+
+        if r is not None:
+	    output = r.text
+        else: 
+            output = {'name':'api_access_failed2'}
     else: 
         output = {'name':'api_access_failed'}
     if DEBUG:
-        print 'request output: {0}'.format(output)
+        print 'request response: {0}'.format(output)
 
     '''
     The following can be updated to display a better website or route elsewhere
@@ -244,11 +249,15 @@ def oauth2callback():
 def main():
     global redir, token_url, api_url, auth_url, service, sec
     logging.basicConfig()
-    
+
+    if len(sys.argv) > 1: #production/IP setting
+	creds_file = 'creds-prod.json'
+    else:
+	creds_file = 'creds.json'
     #read in the credentials (service and secret) from simple json file
     try: 
-        with open('creds.json') as data_file:    
-            data = json.load(data_file)
+        with open(creds_file) as f:    
+            data = json.load(f)
             service = data['service']
             sec = data['secret']
     except:
@@ -283,8 +292,9 @@ def main():
         SERVER='localhost'
         PORT='9977'
 	REDIR_PATH='testfarms/oada'
+        
     redir='http://{0}:{1}/{2}/'.format(SERVER,PORT,REDIR_PATH) 
-    SERVER = '0.0.0.0' #have flask listen to all 
+    SERVER = '0.0.0.0' #flask expects local host or all
     app.run(host=SERVER,port=PORT)
 
 if __name__ == '__main__':
