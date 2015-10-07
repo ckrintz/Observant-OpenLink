@@ -284,6 +284,7 @@ def main():
         PORT='9977'
 	REDIR_PATH='testfarms/oada'
     redir='http://{0}:{1}/{2}/'.format(SERVER,PORT,REDIR_PATH) 
+    SERVER = '0.0.0.0' #have flask listen to all 
     app.run(host=SERVER,port=PORT)
 
 if __name__ == '__main__':
